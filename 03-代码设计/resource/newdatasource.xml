@@ -9,6 +9,4 @@
 	<datasource type="xml" name="xml1">
         <file>employees.xml</file>
 	</datasource>
-
-
 </DataSourceConfig>
