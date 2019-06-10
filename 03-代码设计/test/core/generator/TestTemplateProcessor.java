@@ -1,7 +1,7 @@
 package core.generator;
+
 import core.common.*;
 import org.easymock.EasyMock;
-import org.easymock.IAnswer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,12 +23,12 @@ public class TestTemplateProcessor implements DataSourceType{
 	private TemplateProcessor tp;
 	//依赖类(DOC)的一个实例。
 	private DataSourceConfig dsc;
-
+	ConstDataSource constDataSource;
 	@Test
 	public void testStaticVarExtract() throws Exception {
 
 		//设置待测试类的状态（测试目标方法）
-		tp.staticVarExtract("resource/newtemplatezzz.doc");
+		tp.staticVarExtract("/root/uwr2019/03-代码设计/resource/newtemplatezzz.doc");
 		//以下进行检查点设置
 		DataSource ds = dsc.getConstDataSource();
 
@@ -52,6 +52,7 @@ public class TestTemplateProcessor implements DataSourceType{
 	}
 
 	@Before
+	@PrepareForTest(DataSourceConfig.class)
 	public void setUp() throws Exception {
 
 		//以下采用Mock对象的方式，做测试前的准备。
@@ -66,8 +67,22 @@ public class TestTemplateProcessor implements DataSourceType{
         //以上流程请在这里实现：
         //
         //
-        // 这里写代码
-        //
+		constDataSource = new ConstDataSource();
+		dsc = EasyMock.createMock(DataSourceConfig.class);
+		EasyMock.expect(dsc.getConstDataSource()).
+				andReturn(constDataSource).
+				anyTimes();
+		EasyMock.expect(dsc.getDataSource(EasyMock.anyString())).
+				andReturn(constDataSource).
+				anyTimes();
+		EasyMock.expect(dsc.getDataHolder(EasyMock.anyString())).
+				andAnswer(() -> (constDataSource.getDataHolder((String) EasyMock.getCurrentArguments()[0])))
+				.anyTimes();
+
+		PowerMock.mockStatic(DataSourceConfig.class);
+		EasyMock.expect(DataSourceConfig.newInstance()).
+				andReturn(dsc).
+				anyTimes();
         //------------------------------------------------
 		//5. 重放所有的行为。
 		PowerMock.replayAll(dsc);
